@@ -20,7 +20,7 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let config = AppConfig::load().map_err(|e| anyhow::anyhow!(e))?;
-    tracing::info!("Starting Kana HRIS Backend Gateway on {}:{}", config.host, config.port);
+    tracing::info!("Starting HRIS Backend Gateway on {}:{}", config.host, config.port);
 
     let db = create_connection(&config.database_url).await?;
     tracing::info!("Database connection established successfully");

@@ -48,9 +48,9 @@ function LoginPage() {
               <Sparkles className="h-6 w-6 text-indigo-400" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Kana HRIS Platform</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">HRIS Platform</h1>
           <p className="text-sm text-slate-400">
-            Next-Gen Deterministic Payroll & Intelligent Workforce Management
+            Deterministic Payroll & Intelligent Workforce Management
           </p>
         </div>
 

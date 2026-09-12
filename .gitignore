@@ -19,6 +19,7 @@ routeTree.gen.ts
 .vscode/
 *.swp
 *.swo
+.agent/
 
 # OS
 .DS_Store
@@ -28,9 +29,3 @@ Thumbs.db
 .moon/cache
 .moon/docker
 
-#agent
-rust-skills.md
-prd-brd.md
-rust-skills.md
-TASKS.md
-design-system.md

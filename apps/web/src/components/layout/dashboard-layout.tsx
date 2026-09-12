@@ -44,7 +44,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <div className="font-bold tracking-tight text-white flex items-center gap-1.5 text-base">
-              Kana HRIS
+              HRIS
               <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                 Core
               </span>
@@ -63,11 +63,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                  isActive
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
                     ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                }`}
+                  }`}
               >
                 <Icon className={`h-4.5 w-4.5 transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-200'}`} />
                 <span className="flex-1">{item.label}</span>
