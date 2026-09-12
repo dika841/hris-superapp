@@ -15,3 +15,5 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 anyhow.workspace = true
 dotenvy.workspace = true
+tokio-cron-scheduler.workspace = true
+chrono-tz.workspace = true

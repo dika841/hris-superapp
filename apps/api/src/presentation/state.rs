@@ -1,4 +1,5 @@
 use sea_orm::DatabaseConnection;
+use crate::application::scheduler::SchedulerTasks;
 use crate::infrastructure::auth::{Argon2PasswordService, JwtTokenService};
 use crate::infrastructure::repository::{
     SeaOrmEmployeeRepository, SeaOrmPayrollRepository, SeaOrmRbacRepository, SeaOrmUserRepository,
@@ -13,6 +14,7 @@ pub struct AppState {
     pub employee_repository: SeaOrmEmployeeRepository,
     pub payroll_repository: SeaOrmPayrollRepository,
     pub rbac_repository: SeaOrmRbacRepository,
+    pub scheduler_tasks: SchedulerTasks,
 }
 
 impl AppState {
@@ -26,6 +28,11 @@ impl AppState {
         let employee_repository = SeaOrmEmployeeRepository::new(db.clone());
         let payroll_repository = SeaOrmPayrollRepository::new(db.clone());
         let rbac_repository = SeaOrmRbacRepository::new(db.clone());
+        let scheduler_tasks = SchedulerTasks::new(
+            db.clone(),
+            employee_repository.clone(),
+            payroll_repository.clone(),
+        );
 
         Self {
             db,
@@ -35,6 +42,7 @@ impl AppState {
             employee_repository,
             payroll_repository,
             rbac_repository,
+            scheduler_tasks,
         }
     }
 }

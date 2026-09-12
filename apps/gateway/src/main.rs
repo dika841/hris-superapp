@@ -1,5 +1,8 @@
+mod scheduler;
+
 use std::net::SocketAddr;
 use api::{build_router, create_connection, AppConfig, AppState};
+use scheduler::GatewayScheduler;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -24,6 +27,9 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::new(db, &config.jwt_secret);
 
+    // Initialize In-Process Tokio Scheduler (Asia/Jakarta timezone)
+    let mut scheduler = GatewayScheduler::start(state.clone()).await?;
+
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
@@ -37,6 +43,43 @@ async fn main() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind(addr).await?;
     tracing::info!("HRIS Gateway listening on http://{}", addr);
 
-    axum::serve(listener, app).await?;
+    // Serve HTTP with graceful shutdown handling for both SIGINT and SIGTERM
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+
+    // Gracefully stop background scheduler
+    scheduler.shutdown().await?;
+    tracing::info!("HRIS Gateway shutdown complete");
+
     Ok(())
+}
+
+/// Listens for termination signals: SIGINT (Ctrl+C) and Unix SIGTERM.
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {
+            tracing::info!("Received SIGINT (Ctrl+C), starting graceful shutdown...");
+        },
+        _ = terminate => {
+            tracing::info!("Received SIGTERM, starting graceful shutdown...");
+        },
+    }
 }

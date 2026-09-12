@@ -1,21 +1,21 @@
 ---
-name: kana-monorepo-fullstack-rust-ts
+name: monorepo-fullstack-rust-ts
 description: Best-practices guide for building a full-stack monorepo with a Rust (Axum, SeaORM, Clean Architecture, JWT, Argon2) backend and a React 19 / TanStack Router TypeScript SPA frontend. Use when scaffolding a new full-stack project, adding features (domain + use-case + repo + Axum handler + TanStack route + UI), or reviewing code.
 ---
 
-# Kana Monorepo Full-Stack (Rust Backend + TypeScript Frontend) Skill
+# Monorepo Full-Stack (Rust Backend + TypeScript Frontend) Skill
 
 Reference stack:
 
-| Layer | Tech |
-|---|---|
-| Monorepo | Cargo workspace (Backend) + pnpm / moon (Frontend & Workspace orchestration) |
-| Backend | Rust (Axum 0.8, SeaORM 1.1, sea-orm-migration, Argon2, JWT, zod-rs, paginator-rs, Tokio) |
-| Architecture | Hexagonal / Clean Architecture (Domain → Application → Infrastructure → Presentation) |
-| Frontend | React 19 + TanStack Router SPA (file-based) + Vite + Tailwind v4 + shadcn/ui |
-| Data / API | REST API / JSON, TanStack Query + typed API client & Query Key Factories |
-| Lint/format | `cargo fmt` & `cargo clippy` (Backend), Biome (Frontend) |
-| Test | `cargo test` (Backend), Vitest (Frontend) |
+| Layer        | Tech                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| Monorepo     | Cargo workspace (Backend) + pnpm / moon (Frontend & Workspace orchestration)             |
+| Backend      | Rust (Axum 0.8, SeaORM 1.1, sea-orm-migration, Argon2, JWT, zod-rs, paginator-rs, Tokio) |
+| Architecture | Hexagonal / Clean Architecture (Domain → Application → Infrastructure → Presentation)    |
+| Frontend     | React 19 + TanStack Router SPA (file-based) + Vite + Tailwind v4 + shadcn/ui             |
+| Data / API   | REST API / JSON, TanStack Query + typed API client & Query Key Factories                 |
+| Lint/format  | `cargo fmt` & `cargo clippy` (Backend), Biome (Frontend)                                 |
+| Test         | `cargo test` (Backend), Vitest (Frontend)                                                |
 
 ---
 
@@ -30,6 +30,7 @@ The answer changes the scaffold materially. Do not guess. Default to asking even
 ### If **multi-tenant** (default for this skill)
 
 Keep multi-tenancy constructs:
+
 - `organization`, `member`, `role` aggregates in domain
 - `$orgSlug.tsx` + `$orgSlug/` layout in `apps/web/src/routes/_authenticated/`
 - Org-role middleware & permission checking
@@ -39,6 +40,7 @@ Keep multi-tenancy constructs:
 ### If **single-tenant**
 
 Strip the following before scaffolding — do not leave dead code:
+
 - Delete `organization` and `member` domain aggregates and repos.
 - Delete `routes/_authenticated/org/` and collapse `$orgSlug.tsx` + `$orgSlug/` — promote children directly under `_authenticated/`.
 - Role checks simplified to single `user.role` / direct permissions (`admin | user`).
@@ -119,6 +121,7 @@ presentation → infrastructure  (only to wire AppState)
 ### 2.2 Domain layer
 
 #### Entities
+
 Plain Rust structs — no derives beyond domain logic needs. No ORM annotations.
 
 ```rust
@@ -148,6 +151,7 @@ pub struct UserPatch {
 ```
 
 #### Repository traits
+
 Use `impl Future` in trait methods (Rust 2024 edition). Always `Send + Sync`.
 
 ```rust
@@ -172,6 +176,7 @@ pub trait UserRepository: Send + Sync {
 ```
 
 #### Domain & Repository errors
+
 ```rust
 // domain/errors.rs
 pub enum RepositoryError {
@@ -198,6 +203,7 @@ pub enum AuthError {
 ### 2.3 Application layer
 
 #### Port traits (interfaces for external services)
+
 ```rust
 // application/auth/ports/password.rs
 pub trait PasswordService: Send + Sync {
@@ -217,6 +223,7 @@ pub trait TokenService: Send + Sync {
 ```
 
 #### Use case pattern
+
 Constructed in the handler, generic over port and repo traits.
 
 ```rust
@@ -262,6 +269,7 @@ impl<P: PasswordService, R: UserRepository> CreateUserUseCase<P, R> {
 ### 2.4 Infrastructure layer
 
 #### SeaORM repository implementation
+
 - Live in `infrastructure/repository/`.
 - Converts SeaORM Models to Domain Entities (`impl From<Model> for User`).
 - Maps `DbErr` to `RepositoryError`.
@@ -299,6 +307,7 @@ impl UserRepository for SeaOrmUserRepository {
 ### 2.5 Presentation layer (Axum)
 
 #### AppState
+
 Concrete types only (no trait objects). Cheap to clone because `DatabaseConnection` is `Arc`-backed.
 
 ```rust
@@ -313,6 +322,7 @@ pub struct AppState {
 ```
 
 #### AppError & HTTP response mapping
+
 ```rust
 pub enum AppError {
     BadRequest(String),
@@ -342,6 +352,7 @@ impl IntoResponse for AppError {
 ```
 
 #### Axum Handlers & DTOs
+
 - Validate incoming requests with `zod-rs` or `validator`.
 - Use `#[instrument(skip_all, fields(...))]` on every handler.
 - Return `201 CREATED` for `POST`, `204 NO_CONTENT` for `DELETE`, `200 OK` for others.
@@ -390,6 +401,7 @@ pub async fn create_user(
 ## 3. Frontend (React 19 + TanStack)
 
 ### 3.1 Routing & Layouts
+
 - TanStack Router, file-based, `autoCodeSplitting: true`.
 - **Layout = file + sibling folder pair**:
   - `_public.tsx` / `_public/` (Login, Register, Landing)
@@ -399,26 +411,29 @@ pub async fn create_user(
 - Underscore folders (`_components/`, `_hooks/`, `_data/`) are ignored by the router and colocate UI logic cleanly.
 
 ### 3.2 API Client & TanStack Query
+
 - Centralized Axios/fetch client with `Authorization: Bearer <token>` interceptor.
 - Centralized Query Key Factories for all queries and mutations:
 
 ```typescript
 // apps/web/src/libs/api/users.ts
 export const userKeys = {
-  all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
+  all: ["users"] as const,
+  lists: () => [...userKeys.all, "list"] as const,
   list: (params?: TListParams) => [...userKeys.lists(), params] as const,
-  details: () => [...userKeys.all, 'detail'] as const,
+  details: () => [...userKeys.all, "detail"] as const,
   detail: (id: string) => [...userKeys.details(), id] as const,
-}
+};
 ```
 
 ### 3.3 State Management & Forms
+
 - **Server State**: TanStack Query (`useQuery`, `useMutation`, `useSuspenseQuery`).
 - **Client State**: TanStack Store or Zustand.
 - **Forms**: TanStack Form + Zod validation.
 
 ### 3.4 Frontend Conventions
+
 - Prefix `T` for types (e.g. `TUserResponse`), `I` for interfaces, `E` for enums.
 - Use **kebab-case** for file and directory names (e.g. `user-table.tsx`, `auth-guard.tsx`).
 - Invalidate relevant query keys in `onSuccess` handlers of mutations.

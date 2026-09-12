@@ -12,3 +12,5 @@ tasks:
     script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo build --release --bin gateway'
   check:
     script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo check -p gateway'
+  test:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo test -p gateway'

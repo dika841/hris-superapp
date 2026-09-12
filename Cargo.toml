@@ -67,6 +67,10 @@ thiserror = "2.0"
 # Env
 dotenvy = "0.15"
 
+# Background Scheduling & Timezone
+tokio-cron-scheduler = "0.15"
+chrono-tz = { version = "0.10", features = ["serde"] }
+
 # Local Crates
 api = { path = "apps/api" }
 migration = { path = ".migrations" }
