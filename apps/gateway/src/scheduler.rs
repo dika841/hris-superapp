@@ -8,9 +8,6 @@ pub struct GatewayScheduler {
 }
 
 impl GatewayScheduler {
-    /// Initializes and starts the In-Process Tokio Scheduler in Asia/Jakarta timezone.
-    /// Note: Gateway only configures the cron triggers; all business logic is delegated
-    /// to application-layer use cases in `api::application::scheduler::SchedulerTasks`.
     pub async fn start(state: AppState) -> anyhow::Result<Self> {
         let sched = JobScheduler::new().await.context("Failed to initialize JobScheduler")?;
 
@@ -53,7 +50,6 @@ impl GatewayScheduler {
         sched.add(attendance_job).await.context("Failed to add attendance sweep job")?;
 
         // 3. Monthly Payroll Cutoff Monitor: 06:00 WIB daily (0 0 6 * * *)
-        // Only inspects readiness and logs notification; no heavy batch calculations in gateway.
         let state_pay = state.clone();
         let cutoff_job = JobBuilder::new()
             .with_timezone(Jakarta)
