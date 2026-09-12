@@ -1,0 +1,29 @@
+# Rust
+target/
+**/*.rs.bk
+*.pdb
+
+# Node / Web
+node_modules/
+dist/
+.vite/
+routeTree.gen.ts
+
+# Environment
+.env
+.env.local
+*.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# moon
+.moon/cache
+.moon/docker

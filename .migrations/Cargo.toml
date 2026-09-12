@@ -1,0 +1,18 @@
+[package]
+name = "migration"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+sea-orm-migration.workspace = true
+async-trait.workspace = true
+dotenvy.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[[bin]]
+name = "migration"
+path = "src/main.rs"
