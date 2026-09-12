@@ -27,3 +27,10 @@ Thumbs.db
 # moon
 .moon/cache
 .moon/docker
+
+#agent
+rust-skills.md
+prd-brd.md
+rust-skills.md
+TASKS.md
+design-system.md
