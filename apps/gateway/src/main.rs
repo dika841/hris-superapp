@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::new(db, &config.jwt_secret);
 
-    // Initialize In-Process Tokio Scheduler (Asia/Jakarta timezone)
+    // Initialize In-Process Tokio Scheduler
     let mut scheduler = GatewayScheduler::start(state.clone()).await?;
 
     let cors = CorsLayer::new()
@@ -55,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Listens for termination signals: SIGINT (Ctrl+C) and Unix SIGTERM.
+/// Listens for termination signals: SIGINT and Unix SIGTERM.
 async fn shutdown_signal() {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
