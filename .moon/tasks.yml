@@ -1,0 +1,10 @@
+# https://moonrepo.dev/docs/config/tasks
+fileGroups:
+  sources:
+    - 'src/**/*'
+    - 'Cargo.toml'
+  tests:
+    - 'tests/**/*'
+
+env:
+  PATH: '$HOME/.cargo/bin:$PATH'

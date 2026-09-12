@@ -3,14 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev:backend": "cargo run --bin gateway",
-    "dev:frontend": "pnpm --filter @saas/web dev",
-    "dev": "pnpm dev:frontend",
-    "build:backend": "cargo build --release",
-    "build:frontend": "pnpm --filter @saas/web build",
-    "build": "pnpm build:frontend && pnpm build:backend",
-    "db:migrate": "cargo run --bin migration up",
-    "db:seed": "cargo run --bin bootstrap",
-    "check": "cargo check && pnpm --filter @saas/web check"
+    "dev": "moon run web:dev",
+    "dev:backend": "moon run gateway:dev",
+    "build": "moon run :build",
+    "check": "moon run :check",
+    "test": "moon run :test",
+    "db:migrate": "moon run migration:up",
+    "db:seed": "moon run bootstrap:seed"
   }
 }

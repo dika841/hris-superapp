@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'rust'
+stack: 'infrastructure'
+
+tasks:
+  up:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo run --bin migration up'
+  down:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo run --bin migration down'
+  check:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo check -p migration'

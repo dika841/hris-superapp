@@ -1,0 +1,14 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'rust'
+stack: 'backend'
+dependsOn:
+  - 'api'
+
+tasks:
+  dev:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo run --bin gateway'
+  build:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo build --release --bin gateway'
+  check:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo check -p gateway'

@@ -1,0 +1,14 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'rust'
+stack: 'backend'
+
+tasks:
+  check:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo check -p api'
+  test:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo test -p api'
+  db-migrate:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo run --bin migration up'
+  db-seed:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo run --bin bootstrap'

@@ -1,0 +1,2 @@
+# https://moonrepo.dev/docs/config/toolchains
+$schema: 'https://moonrepo.dev/schemas/toolchains.json'

@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'rust'
+stack: 'infrastructure'
+dependsOn:
+  - 'api'
+
+tasks:
+  seed:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo run --bin bootstrap'
+  check:
+    script: 'export PATH="$HOME/.cargo/bin:$PATH" && cargo check -p bootstrap'
