@@ -7,4 +7,6 @@ pub trait TokenService: Send + Sync {
         -> impl Future<Output = Result<AuthTokens, String>> + Send;
     fn verify_access_token(&self, token: &str)
         -> Result<(Uuid, String, String), String>; // (id, email, role)
+    fn verify_refresh_token(&self, token: &str)
+        -> Result<(Uuid, String, String), String>; // (id, email, role)
 }

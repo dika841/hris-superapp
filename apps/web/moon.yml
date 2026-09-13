@@ -4,6 +4,8 @@ language: 'typescript'
 stack: 'frontend'
 dependsOn:
   - 'api'
+  - 'ui'
+  - 'utils'
 
 tasks:
   dev:

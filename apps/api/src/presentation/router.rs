@@ -9,10 +9,12 @@ use crate::presentation::middleware::auth_middleware;
 use crate::presentation::state::AppState;
 
 pub fn build_router(state: AppState) -> Router {
-    // Public routes (no auth required)
+    // Public routes (no Bearer auth required)
     let public_routes = Router::new()
         .route("/healthz", get(|| async { Json(json!({ "status": "ok", "service": "hris-api" })) }))
         .route("/api/auth/login", post(auth::login))
+        .route("/api/auth/refresh", post(auth::refresh))
+        .route("/api/auth/logout", post(auth::logout))
         .route("/api/payroll/preview-tax", post(payroll::preview_tax));
 
     // Protected routes (JWT authentication required)

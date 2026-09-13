@@ -31,8 +31,8 @@ impl JwtTokenService {
 impl TokenService for JwtTokenService {
     async fn generate_tokens(&self, user_id: Uuid, email: &str, role: &str) -> Result<AuthTokens, String> {
         let now = Utc::now();
-        let expires_in_seconds = 86400; // 24 hours
-        let access_exp = (now + Duration::seconds(expires_in_seconds)).timestamp() as usize;
+        let expires_in_seconds = 900; // 15 minutes for access token
+        let access_exp = (now + Duration::seconds(expires_in_seconds as i64)).timestamp() as usize;
         let refresh_exp = (now + Duration::days(7)).timestamp() as usize;
 
         let access_claims = Claims {
@@ -84,7 +84,23 @@ impl TokenService for JwtTokenService {
         .map_err(|e| e.to_string())?;
 
         if token_data.claims.token_type != "access" {
-            return Err("Invalid token type".to_string());
+            return Err("Invalid token type: expected access token".to_string());
+        }
+
+        let user_id = Uuid::parse_str(&token_data.claims.sub).map_err(|e| e.to_string())?;
+        Ok((user_id, token_data.claims.email, token_data.claims.role))
+    }
+
+    fn verify_refresh_token(&self, token: &str) -> Result<(Uuid, String, String), String> {
+        let token_data = decode::<Claims>(
+            token,
+            &DecodingKey::from_secret(&self.secret),
+            &Validation::default(),
+        )
+        .map_err(|e| e.to_string())?;
+
+        if token_data.claims.token_type != "refresh" {
+            return Err("Invalid token type: expected refresh token".to_string());
         }
 
         let user_id = Uuid::parse_str(&token_data.claims.sub).map_err(|e| e.to_string())?;

@@ -5,6 +5,8 @@ projects:
   bootstrap: 'apps/bootstrap'
   migration: '.migrations'
   web: 'apps/web'
+  ui: 'packages/ui'
+  utils: 'packages/utils'
 
 vcs:
   defaultBranch: 'main'
