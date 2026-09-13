@@ -5,13 +5,6 @@ export interface TLoginPayload {
   password: string
 }
 
-export interface TAuthTokens {
-  access_token: string
-  refresh_token: string
-  token_type: string
-  expires_in: number
-}
-
 export interface TUserSession {
   id: string
   email: string
@@ -20,10 +13,24 @@ export interface TUserSession {
   permissions: string[]
 }
 
+export interface TAuthResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+  user: TUserSession
+}
+
 export const authApi = {
-  login: async (payload: TLoginPayload): Promise<TAuthTokens> => {
-    const res = await api.post<TAuthTokens>('/auth/login', payload)
+  login: async (payload: TLoginPayload): Promise<TAuthResponse> => {
+    const res = await api.post<TAuthResponse>('/auth/login', payload)
     return res.data
+  },
+  refresh: async (): Promise<TAuthResponse> => {
+    const res = await api.post<TAuthResponse>('/auth/refresh')
+    return res.data
+  },
+  logout: async (): Promise<void> => {
+    await api.post('/auth/logout')
   },
   me: async (): Promise<TUserSession> => {
     const res = await api.get<TUserSession>('/auth/me')

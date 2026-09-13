@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "moon run web:dev",
     "dev:backend": "moon run gateway:dev",
+    "storybook": "pnpm --filter @hris/ui storybook",
+    "build-storybook": "pnpm --filter @hris/ui build-storybook",
     "build": "moon run :build",
     "check": "moon run :check",
     "test": "moon run :test",

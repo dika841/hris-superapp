@@ -2,8 +2,12 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { initTheme } from '@hris/utils'
 import { routeTree } from './routeTree.gen'
 import './styles.css'
+
+// Initialize user preferred theme (light / dark) immediately before render
+initTheme()
 
 const queryClient = new QueryClient({
   defaultOptions: {

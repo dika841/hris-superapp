@@ -3,7 +3,7 @@ mod scheduler;
 use std::net::SocketAddr;
 use api::{build_router, create_connection, AppConfig, AppState};
 use scheduler::GatewayScheduler;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -30,10 +30,22 @@ async fn main() -> anyhow::Result<()> {
     // Initialize In-Process Tokio Scheduler
     let mut scheduler = GatewayScheduler::start(state.clone()).await?;
 
+    let configured_origin: axum::http::HeaderValue = config
+        .web_origin
+        .parse()
+        .unwrap_or_else(|_| "http://localhost:3000".parse().unwrap());
+
     let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_origin([
+            configured_origin,
+            "http://localhost:5173".parse().unwrap(),
+            "http://127.0.0.1:5173".parse().unwrap(),
+            "http://localhost:3000".parse().unwrap(),
+            "http://127.0.0.1:3000".parse().unwrap(),
+        ])
+        .allow_methods(tower_http::cors::Any)
+        .allow_headers(tower_http::cors::Any)
+        .allow_credentials(true);
 
     let app = build_router(state)
         .layer(cors)

@@ -1,0 +1,19 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'typescript'
+stack: 'frontend'
+dependsOn:
+  - 'utils'
+
+tasks:
+  check:
+    script: 'pnpm check'
+  storybook:
+    script: 'pnpm storybook'
+    options:
+      runInCI: false
+      cache: false
+  build-storybook:
+    script: 'pnpm build-storybook'
+    outputs:
+      - 'storybook-static'
