@@ -10,7 +10,7 @@ impl<R: UserRepository> ListUsersUseCase<R> {
         Self { user_repository }
     }
 
-    pub async fn execute(&self, page: u64, page_size: u64) -> Result<(Vec<User>, u64), RepositoryError> {
-        self.user_repository.list(page, page_size).await
+    pub async fn execute(&self, page: u64, page_size: u64, search: Option<&str>, role: Option<&str>) -> Result<(Vec<User>, u64), RepositoryError> {
+        self.user_repository.list(page, page_size, search, role).await
     }
 }

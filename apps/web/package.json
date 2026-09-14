@@ -21,6 +21,7 @@
     "@tanstack/store": "^0.11.1",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
+    "nuqs": "^2.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.1",

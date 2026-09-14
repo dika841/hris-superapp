@@ -22,6 +22,8 @@ pub struct ListEmployeesQuery {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
     pub department: Option<String>,
+    pub search: Option<String>,
+    pub status: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -76,9 +78,21 @@ pub async fn list_employees(
     let page = query.page.unwrap_or(1);
     let page_size = query.page_size.unwrap_or(20);
 
+    let is_active = match query.status.as_deref() {
+        Some("active") => Some(true),
+        Some("inactive") => Some(false),
+        _ => None,
+    };
+
     let use_case = ListEmployeesUseCase::new(state.employee_repository.clone());
     let (data, total) = use_case
-        .execute(page, page_size, query.department.as_deref())
+        .execute(
+            page,
+            page_size,
+            query.department.as_deref(),
+            query.search.as_deref(),
+            is_active,
+        )
         .await?;
 
     Ok((

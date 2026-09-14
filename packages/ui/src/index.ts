@@ -12,10 +12,12 @@ export {
   getSortedRowModel,
   getFilteredRowModel,
   createColumnHelper,
+  type Column,
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
   type VisibilityState,
+  type Table as TanStackTable,
 } from '@tanstack/react-table'
 
 export { useForm, type FieldApi } from '@tanstack/react-form'

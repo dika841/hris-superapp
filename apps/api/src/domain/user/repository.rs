@@ -14,6 +14,11 @@ pub trait UserRepository: Send + Sync {
         -> impl Future<Output = Result<User, RepositoryError>> + Send;
     fn delete(&self, id: Uuid)
         -> impl Future<Output = Result<(), RepositoryError>> + Send;
-    fn list(&self, page: u64, page_size: u64)
-        -> impl Future<Output = Result<(Vec<User>, u64), RepositoryError>> + Send;
+    fn list(
+        &self,
+        page: u64,
+        page_size: u64,
+        search: Option<&str>,
+        role: Option<&str>,
+    ) -> impl Future<Output = Result<(Vec<User>, u64), RepositoryError>> + Send;
 }

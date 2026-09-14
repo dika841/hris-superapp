@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {
   Card,
   CardContent,
@@ -6,130 +7,236 @@ import {
   CardDescription,
   Button,
   Badge,
+  DataTable,
+  DataTableColumnHeader,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  type ColumnDef,
 } from '@hris/ui'
 import { formatRupiah } from '@hris/utils'
 import type { IPayrollRecord } from '../../../../libs/api/payroll'
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+]
+
+const STATUSES = [
+  { value: 'all', label: 'All Status' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'pending', label: 'Pending Payment' },
+]
 
 interface PayrollTableProps {
   records: IPayrollRecord[]
   selectedMonth: number
   selectedYear: number
+  selectedStatus: string
+  search?: string
+  onSearchChange?: (val: string) => void
   onMonthChange: (month: number) => void
   onYearChange: (year: number) => void
+  onStatusChange: (status: string) => void
   onMarkPaid: (id: string) => void
   isPaying: boolean
+  isLoading?: boolean
 }
 
 export function PayrollTable({
   records,
   selectedMonth,
   selectedYear,
+  selectedStatus,
+  search,
+  onSearchChange,
   onMonthChange,
   onYearChange,
+  onStatusChange,
   onMarkPaid,
   isPaying,
+  isLoading = false,
 }: PayrollTableProps) {
+  const columns = React.useMemo<ColumnDef<IPayrollRecord>[]>(
+    () => [
+      {
+        accessorKey: 'employee_id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Employee ID" />,
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-muted-foreground">{row.original.employee_id}</span>
+        ),
+      },
+      {
+        accessorKey: 'gross_salary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Gross Salary" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-foreground">{formatRupiah(row.original.gross_salary)}</span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = parseFloat(rowA.original.gross_salary) || 0
+          const b = parseFloat(rowB.original.gross_salary) || 0
+          return a - b
+        },
+      },
+      {
+        accessorKey: 'ter_category',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="TER Bracket" />,
+        cell: ({ row }) => <Badge variant="info">{row.original.ter_category}</Badge>,
+      },
+      {
+        accessorKey: 'pph21_amount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="PPh 21" />,
+        cell: ({ row }) => (
+          <span className="font-mono text-primary font-medium">
+            {formatRupiah(row.original.pph21_amount)}
+          </span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = parseFloat(rowA.original.pph21_amount) || 0
+          const b = parseFloat(rowB.original.pph21_amount) || 0
+          return a - b
+        },
+      },
+      {
+        id: 'bpjs_total',
+        header: 'BPJS Deductions',
+        cell: ({ row }) => {
+          const bpjsTotal =
+            (parseFloat(row.original.bpjs_jht_employee) || 0) +
+            (parseFloat(row.original.bpjs_jp_employee) || 0) +
+            (parseFloat(row.original.bpjs_kes_employee) || 0)
+          return <span className="font-mono text-muted-foreground">{formatRupiah(bpjsTotal)}</span>
+        },
+      },
+      {
+        accessorKey: 'take_home_pay',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Take Home Pay" />,
+        cell: ({ row }) => (
+          <span className="font-mono font-semibold text-emerald-500">
+            {formatRupiah(row.original.take_home_pay)}
+          </span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = parseFloat(rowA.original.take_home_pay) || 0
+          const b = parseFloat(rowB.original.take_home_pay) || 0
+          return a - b
+        },
+      },
+      {
+        accessorKey: 'is_paid',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+        cell: ({ row }) => (
+          <Badge variant={row.original.is_paid ? 'success' : 'warning'}>
+            {row.original.is_paid ? 'Paid' : 'Pending Payment'}
+          </Badge>
+        ),
+      },
+      {
+        id: 'actions',
+        header: () => <div className="text-right">Actions</div>,
+        cell: ({ row }) => (
+          <div className="text-right">
+            {!row.original.is_paid && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => onMarkPaid(row.original.id)}
+                disabled={isPaying}
+              >
+                Mark Paid
+              </Button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [isPaying, onMarkPaid]
+  )
+
+  const filterControls = (
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* Month Selector */}
+      <Select
+        value={String(selectedMonth)}
+        onValueChange={(val) => onMonthChange(parseInt(val))}
+      >
+        <SelectTrigger className="h-9 w-36 text-xs">
+          <SelectValue placeholder="Select Month" />
+        </SelectTrigger>
+        <SelectContent>
+          {MONTH_NAMES.map((name, i) => (
+            <SelectItem key={i + 1} value={String(i + 1)} className="text-xs">
+              {name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Year Selector */}
+      <Select
+        value={String(selectedYear)}
+        onValueChange={(val) => onYearChange(parseInt(val))}
+      >
+        <SelectTrigger className="h-9 w-24 text-xs">
+          <SelectValue placeholder="Year" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="2024" className="text-xs">2024</SelectItem>
+          <SelectItem value="2025" className="text-xs">2025</SelectItem>
+          <SelectItem value="2026" className="text-xs">2026</SelectItem>
+          <SelectItem value="2027" className="text-xs">2027</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Status Filter */}
+      <Select
+        value={selectedStatus}
+        onValueChange={onStatusChange}
+      >
+        <SelectTrigger className="h-9 w-36 text-xs">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUSES.map((st) => (
+            <SelectItem key={st.value} value={st.value} className="text-xs">
+              {st.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   return (
     <Card className="glass-panel">
-      <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border">
-        <div>
-          <CardTitle>Payroll Ledger</CardTitle>
-          <CardDescription>
-            Auditable records of gross earnings, tax withholdings, and employee nett compensation.
-          </CardDescription>
-        </div>
-        <div className="flex items-center gap-3">
-          <select
-            value={selectedMonth}
-            onChange={(e) => onMonthChange(parseInt(e.target.value))}
-            className="h-9 rounded-lg border border-input bg-background px-3 text-xs text-foreground"
-          >
-            {Array.from({ length: 12 }).map((_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Month {i + 1}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={(e) => onYearChange(parseInt(e.target.value))}
-            className="h-9 rounded-lg border border-input bg-background px-3 text-xs text-foreground"
-          >
-            <option value={2025}>2025</option>
-            <option value={2026}>2026</option>
-          </select>
+      <CardHeader className="border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <CardTitle>Payroll Ledger</CardTitle>
+            <CardDescription>
+              Auditable records of gross earnings, tax withholdings, and employee nett compensation.
+            </CardDescription>
+          </div>
+          <Badge variant="secondary" className="w-fit text-xs font-mono">
+            {records.length} Records
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-0 overflow-x-auto">
-        <table className="w-full text-left text-sm text-foreground">
-          <thead className="bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">
-            <tr>
-              <th className="px-6 py-4">Employee ID</th>
-              <th className="px-6 py-4">Gross Salary</th>
-              <th className="px-6 py-4">TER Bracket</th>
-              <th className="px-6 py-4">PPh 21 Withholding</th>
-              <th className="px-6 py-4">BPJS Deductions</th>
-              <th className="px-6 py-4">Take Home Pay</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {records.length > 0 ? (
-              records.map((record) => {
-                const bpjsTotal =
-                  (parseFloat(record.bpjs_jht_employee) || 0) +
-                  (parseFloat(record.bpjs_jp_employee) || 0) +
-                  (parseFloat(record.bpjs_kes_employee) || 0)
-                return (
-                  <tr key={record.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
-                      {record.employee_id}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-foreground">
-                      {formatRupiah(record.gross_salary)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="info">{record.ter_category}</Badge>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-primary">
-                      {formatRupiah(record.pph21_amount)}
-                    </td>
-                    <td className="px-6 py-4 font-mono text-muted-foreground">
-                      {formatRupiah(bpjsTotal)}
-                    </td>
-                    <td className="px-6 py-4 font-mono font-semibold text-emerald-500">
-                      {formatRupiah(record.take_home_pay)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={record.is_paid ? 'success' : 'warning'}>
-                        {record.is_paid ? 'Paid' : 'Pending Payment'}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {!record.is_paid && (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => onMarkPaid(record.id)}
-                          disabled={isPaying}
-                        >
-                          Mark Paid
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })
-            ) : (
-              <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
-                  No payroll calculations recorded for this period yet. Click "Process Employee Payroll" to compute.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <CardContent className="p-6">
+        <DataTable
+          columns={columns}
+          data={records}
+          isLoading={isLoading}
+          searchValue={search}
+          onSearchChange={onSearchChange}
+          searchPlaceholder="Search employee ID..."
+          filterSlot={filterControls}
+          pageSize={10}
+          pageSizeOptions={[10, 20, 50]}
+          emptyMessage="No payroll calculations recorded for this period yet. Click 'Process Employee Payroll' to compute."
+        />
       </CardContent>
     </Card>
   )

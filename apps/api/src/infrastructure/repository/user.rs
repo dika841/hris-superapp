@@ -122,8 +122,31 @@ impl UserRepository for SeaOrmUserRepository {
         Ok(())
     }
 
-    async fn list(&self, page: u64, page_size: u64) -> Result<(Vec<User>, u64), RepositoryError> {
-        let paginator = user_entity::Entity::find()
+    async fn list(
+        &self,
+        page: u64,
+        page_size: u64,
+        search: Option<&str>,
+        role: Option<&str>,
+    ) -> Result<(Vec<User>, u64), RepositoryError> {
+        let mut query = user_entity::Entity::find();
+        if let Some(s) = search {
+            let s = s.trim();
+            if !s.is_empty() {
+                query = query.filter(
+                    user_entity::Column::Name.contains(s)
+                        .or(user_entity::Column::Email.contains(s))
+                );
+            }
+        }
+        if let Some(r) = role {
+            let r = r.trim();
+            if !r.is_empty() && r != "all" {
+                query = query.filter(user_entity::Column::Role.eq(r));
+            }
+        }
+
+        let paginator = query
             .order_by_desc(user_entity::Column::CreatedAt)
             .paginate(&self.db, page_size);
 

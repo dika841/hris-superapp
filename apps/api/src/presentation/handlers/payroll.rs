@@ -22,6 +22,7 @@ use crate::presentation::state::AppState;
 pub struct ListPayrollQuery {
     pub month: i32,
     pub year: i32,
+    pub is_paid: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -62,7 +63,7 @@ pub async fn list_payroll(
     ensure_permission(&actor, "payroll:read")?;
 
     let use_case = ListPayrollUseCase::new(state.payroll_repository.clone());
-    let records = use_case.execute(query.month, query.year).await?;
+    let records = use_case.execute(query.month, query.year, query.is_paid).await?;
 
     Ok((StatusCode::OK, Json(records)))
 }
