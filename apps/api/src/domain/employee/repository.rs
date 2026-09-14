@@ -14,6 +14,12 @@ pub trait EmployeeRepository: Send + Sync {
         -> impl Future<Output = Result<Employee, RepositoryError>> + Send;
     fn delete(&self, id: Uuid)
         -> impl Future<Output = Result<(), RepositoryError>> + Send;
-    fn list(&self, page: u64, page_size: u64, department: Option<&str>)
-        -> impl Future<Output = Result<(Vec<Employee>, u64), RepositoryError>> + Send;
+    fn list(
+        &self,
+        page: u64,
+        page_size: u64,
+        department: Option<&str>,
+        search: Option<&str>,
+        is_active: Option<bool>,
+    ) -> impl Future<Output = Result<(Vec<Employee>, u64), RepositoryError>> + Send;
 }

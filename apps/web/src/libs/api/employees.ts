@@ -45,17 +45,25 @@ export interface TPaginatedEmployees {
   page_size: number
 }
 
+export interface ListEmployeesParams {
+  page?: number
+  page_size?: number
+  department?: string
+  search?: string
+  status?: string
+}
+
 // Query Key Factory (Rule 1 & Section 3.8)
 export const employeeKeys = {
   all: ['employees'] as const,
   lists: () => [...employeeKeys.all, 'list'] as const,
-  list: (params?: { page?: number; department?: string }) => [...employeeKeys.lists(), params] as const,
+  list: (params?: ListEmployeesParams) => [...employeeKeys.lists(), params] as const,
   details: () => [...employeeKeys.all, 'detail'] as const,
   detail: (id: string) => [...employeeKeys.details(), id] as const,
 }
 
 export const employeesApi = {
-  list: async (params?: { page?: number; page_size?: number; department?: string }): Promise<TPaginatedEmployees> => {
+  list: async (params?: ListEmployeesParams): Promise<TPaginatedEmployees> => {
     const res = await api.get<TPaginatedEmployees>('/employees', { params })
     return res.data
   },

@@ -127,10 +127,10 @@ impl SchedulerTasks {
         let is_cutoff_day = now_wib.day() == 25;
 
         // Idempotency: check if any payroll records for this period already exist
-        let existing = self.payroll_repository.list_by_period(month, year).await?;
+        let existing = self.payroll_repository.list_by_period(month, year, None).await?;
         let draft_already_exists = !existing.is_empty();
 
-        let (_employees, total_employees) = self.employee_repository.list(1, 1, None).await?;
+        let (_employees, total_employees) = self.employee_repository.list(1, 1, None, None, Some(true)).await?;
 
         let message = if is_cutoff_day {
             if draft_already_exists {

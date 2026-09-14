@@ -2,16 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { payrollApi, payrollKeys, type TCalculatePayrollPayload } from '../../../../libs/api/payroll'
 import { employeeKeys, employeesApi } from '../../../../libs/api/employees'
 
-export function usePayrollQueries(month: number, year: number) {
+export function usePayrollQueries(month: number, year: number, status = 'all') {
   const queryClient = useQueryClient()
 
+  const isPaidParam = status === 'paid' ? true : status === 'pending' ? false : undefined
+
   const payrollQuery = useQuery({
-    queryKey: payrollKeys.list({ month, year }),
-    queryFn: () => payrollApi.list(month, year),
+    queryKey: payrollKeys.list({ month, year, is_paid: isPaidParam }),
+    queryFn: () => payrollApi.list({ month, year, is_paid: isPaidParam }),
   })
 
   const employeesQuery = useQuery({
-    queryKey: employeeKeys.list({ page: 1 }),
+    queryKey: employeeKeys.list({ page: 1, page_size: 100 }),
     queryFn: () => employeesApi.list({ page: 1, page_size: 100 }),
   })
 

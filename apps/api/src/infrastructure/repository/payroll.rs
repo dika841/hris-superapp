@@ -122,10 +122,16 @@ impl PayrollRepository for SeaOrmPayrollRepository {
         Ok(PayrollRecord::from(updated))
     }
 
-    async fn list_by_period(&self, month: i32, year: i32) -> Result<Vec<PayrollRecord>, RepositoryError> {
-        let items = payroll_entity::Entity::find()
+    async fn list_by_period(&self, month: i32, year: i32, is_paid: Option<bool>) -> Result<Vec<PayrollRecord>, RepositoryError> {
+        let mut query = payroll_entity::Entity::find()
             .filter(payroll_entity::Column::PeriodMonth.eq(month))
-            .filter(payroll_entity::Column::PeriodYear.eq(year))
+            .filter(payroll_entity::Column::PeriodYear.eq(year));
+
+        if let Some(paid) = is_paid {
+            query = query.filter(payroll_entity::Column::IsPaid.eq(paid));
+        }
+
+        let items = query
             .order_by_desc(payroll_entity::Column::CreatedAt)
             .all(&self.db)
             .await

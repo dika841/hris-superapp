@@ -12,7 +12,7 @@ pub trait PayrollRepository: Send + Sync {
         -> impl Future<Output = Result<PayrollRecord, RepositoryError>> + Send;
     fn mark_as_paid(&self, id: Uuid)
         -> impl Future<Output = Result<PayrollRecord, RepositoryError>> + Send;
-    fn list_by_period(&self, month: i32, year: i32)
+    fn list_by_period(&self, month: i32, year: i32, is_paid: Option<bool>)
         -> impl Future<Output = Result<Vec<PayrollRecord>, RepositoryError>> + Send;
     fn list_by_employee(&self, employee_id: Uuid)
         -> impl Future<Output = Result<Vec<PayrollRecord>, RepositoryError>> + Send;

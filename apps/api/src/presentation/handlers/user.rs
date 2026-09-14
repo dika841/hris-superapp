@@ -18,6 +18,8 @@ use crate::presentation::state::AppState;
 pub struct ListUsersQuery {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
+    pub search: Option<String>,
+    pub role: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -57,7 +59,7 @@ pub async fn list_users(
     let page_size = query.page_size.unwrap_or(20);
 
     let use_case = ListUsersUseCase::new(state.user_repository.clone());
-    let (data, total) = use_case.execute(page, page_size).await?;
+    let (data, total) = use_case.execute(page, page_size, query.search.as_deref(), query.role.as_deref()).await?;
 
     Ok((
         StatusCode::OK,

@@ -1,107 +1,204 @@
 import * as React from 'react'
-import { MagnifyingGlass, Buildings } from '@phosphor-icons/react'
+import { Buildings } from '@phosphor-icons/react'
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-  Input,
   Badge,
+  DataTable,
+  DataTableColumnHeader,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  type ColumnDef,
 } from '@hris/ui'
 import { formatRupiah } from '@hris/utils'
 import type { IEmployee } from '../../../../libs/api/employees'
 
+const DEPARTMENTS = [
+  { value: 'all', label: 'All Departments' },
+  { value: 'Engineering', label: 'Engineering' },
+  { value: 'Finance', label: 'Finance' },
+  { value: 'Product', label: 'Product' },
+  { value: 'Tax & Compliance', label: 'Tax & Compliance' },
+  { value: 'People Operations', label: 'People Operations' },
+]
+
+const STATUSES = [
+  { value: 'all', label: 'All Status' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
 export interface EmployeeTableProps {
   employees: IEmployee[]
+  total: number
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (pageSize: number) => void
+  search: string
+  onSearchChange: (search: string) => void
+  department: string
+  onDepartmentChange: (dept: string) => void
+  status: string
+  onStatusChange: (status: string) => void
   isLoading: boolean
 }
 
-export function EmployeeTable({ employees, isLoading }: EmployeeTableProps) {
-  const [search, setSearch] = React.useState('')
-
-  const filteredEmployees = employees.filter(
-    (emp) =>
-      emp.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      emp.employee_code.toLowerCase().includes(search.toLowerCase()) ||
-      emp.department.toLowerCase().includes(search.toLowerCase())
+export function EmployeeTable({
+  employees,
+  total,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  search,
+  onSearchChange,
+  department,
+  onDepartmentChange,
+  status,
+  onStatusChange,
+  isLoading,
+}: EmployeeTableProps) {
+  const columns = React.useMemo<ColumnDef<IEmployee>[]>(
+    () => [
+      {
+        accessorKey: 'full_name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Employee" />,
+        cell: ({ row }) => (
+          <div>
+            <div className="font-medium text-foreground">{row.original.full_name}</div>
+            <div className="text-xs font-mono text-muted-foreground">{row.original.employee_code}</div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'department',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Role & Dept" />,
+        cell: ({ row }) => (
+          <div>
+            <div className="text-foreground">{row.original.position}</div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <Buildings className="h-3 w-3" />
+              {row.original.department}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'ptkp_status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="PTKP Bracket" />,
+        cell: ({ row }) => <Badge variant="info">{row.original.ptkp_status}</Badge>,
+      },
+      {
+        accessorKey: 'basic_salary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Basic Salary" />,
+        cell: ({ row }) => (
+          <span className="font-mono text-foreground">{formatRupiah(row.original.basic_salary)}</span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = parseFloat(rowA.original.basic_salary) || 0
+          const b = parseFloat(rowB.original.basic_salary) || 0
+          return a - b
+        },
+      },
+      {
+        accessorKey: 'allowance_fixed',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Fixed Allowance" />,
+        cell: ({ row }) => (
+          <span className="font-mono text-muted-foreground">{formatRupiah(row.original.allowance_fixed)}</span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = parseFloat(rowA.original.allowance_fixed) || 0
+          const b = parseFloat(rowB.original.allowance_fixed) || 0
+          return a - b
+        },
+      },
+      {
+        accessorKey: 'is_active',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+        cell: ({ row }) => (
+          <Badge variant={row.original.is_active ? 'success' : 'default'}>
+            {row.original.is_active ? 'Active' : 'Inactive'}
+          </Badge>
+        ),
+      },
+    ],
+    []
   )
+
+  const filterSlot = (
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* Department Filter */}
+      <Select value={department} onValueChange={onDepartmentChange}>
+        <SelectTrigger className="h-9 w-[170px] text-xs">
+          <SelectValue placeholder="Department" />
+        </SelectTrigger>
+        <SelectContent>
+          {DEPARTMENTS.map((dept) => (
+            <SelectItem key={dept.value} value={dept.value} className="text-xs">
+              {dept.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Status Filter */}
+      <Select value={status} onValueChange={onStatusChange}>
+        <SelectTrigger className="h-9 w-[130px] text-xs">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUSES.map((st) => (
+            <SelectItem key={st.value} value={st.value} className="text-xs">
+              {st.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   return (
     <Card className="glass-panel">
-      <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border">
-        <div>
-          <CardTitle>Active Employees</CardTitle>
-          <CardDescription>Comprehensive directory of all onboarded personnel</CardDescription>
-        </div>
-        <div className="relative w-full md:w-72">
-          <MagnifyingGlass className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search code, name, dept..."
-            className="pl-9 h-9"
-          />
+      <CardHeader className="border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <CardTitle>Workforce Directory</CardTitle>
+            <CardDescription>Comprehensive directory of all onboarded personnel</CardDescription>
+          </div>
+          <Badge variant="secondary" className="w-fit text-xs font-mono">
+            {total} Total Records
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-0 overflow-x-auto">
-        <table className="w-full text-left text-sm text-foreground">
-          <thead className="bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">
-            <tr>
-              <th className="px-6 py-4">Employee</th>
-              <th className="px-6 py-4">Role & Dept</th>
-              <th className="px-6 py-4">PTKP Bracket</th>
-              <th className="px-6 py-4">Basic Salary</th>
-              <th className="px-6 py-4">Fixed Allowance</th>
-              <th className="px-6 py-4">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {isLoading ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                  Loading workforce directory...
-                </td>
-              </tr>
-            ) : filteredEmployees && filteredEmployees.length > 0 ? (
-              filteredEmployees.map((employee) => (
-                <tr key={employee.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-foreground">{employee.full_name}</div>
-                    <div className="text-xs font-mono text-muted-foreground">{employee.employee_code}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-foreground">{employee.position}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Buildings className="h-3 w-3" />
-                      {employee.department}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant="info">{employee.ptkp_status}</Badge>
-                  </td>
-                  <td className="px-6 py-4 font-mono text-foreground">
-                    {formatRupiah(employee.basic_salary)}
-                  </td>
-                  <td className="px-6 py-4 font-mono text-muted-foreground">
-                    {formatRupiah(employee.allowance_fixed)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant={employee.is_active ? 'success' : 'default'}>
-                      {employee.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                  No employees registered yet. Click "Add Employee" above to add your first hire.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <CardContent className="p-6">
+        <DataTable
+          columns={columns}
+          data={employees}
+          isLoading={isLoading}
+          searchValue={search}
+          onSearchChange={onSearchChange}
+          searchPlaceholder="Search code, name, dept..."
+          filterSlot={filterSlot}
+          manualFiltering={true}
+          manualPagination={true}
+          pageIndex={page - 1}
+          pageSize={pageSize}
+          totalCount={total}
+          pageCount={pageCount}
+          onPageChange={(zeroIndex) => onPageChange(zeroIndex + 1)}
+          onPageSizeChange={onPageSizeChange}
+          pageSizeOptions={[10, 20, 50]}
+          emptyMessage="No employees found matching the specified filters."
+        />
       </CardContent>
     </Card>
   )

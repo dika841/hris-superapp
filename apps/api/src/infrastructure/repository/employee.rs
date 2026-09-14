@@ -167,10 +167,29 @@ impl EmployeeRepository for SeaOrmEmployeeRepository {
         page: u64,
         page_size: u64,
         department: Option<&str>,
+        search: Option<&str>,
+        is_active: Option<bool>,
     ) -> Result<(Vec<Employee>, u64), RepositoryError> {
         let mut query = employee_entity::Entity::find();
         if let Some(dept) = department {
-            query = query.filter(employee_entity::Column::Department.eq(dept));
+            let dept = dept.trim();
+            if !dept.is_empty() && dept != "all" {
+                query = query.filter(employee_entity::Column::Department.eq(dept));
+            }
+        }
+        if let Some(s) = search {
+            let s = s.trim();
+            if !s.is_empty() {
+                query = query.filter(
+                    employee_entity::Column::FullName.contains(s)
+                        .or(employee_entity::Column::EmployeeCode.contains(s))
+                        .or(employee_entity::Column::NationalId.contains(s))
+                        .or(employee_entity::Column::Position.contains(s))
+                );
+            }
+        }
+        if let Some(active) = is_active {
+            query = query.filter(employee_entity::Column::IsActive.eq(active));
         }
 
         let paginator = query

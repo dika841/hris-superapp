@@ -2,6 +2,7 @@ mod scheduler;
 
 use std::net::SocketAddr;
 use api::{build_router, create_connection, AppConfig, AppState};
+use axum::http::{header, Method};
 use scheduler::GatewayScheduler;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
@@ -43,8 +44,20 @@ async fn main() -> anyhow::Result<()> {
             "http://localhost:3000".parse().unwrap(),
             "http://127.0.0.1:3000".parse().unwrap(),
         ])
-        .allow_methods(tower_http::cors::Any)
-        .allow_headers(tower_http::cors::Any)
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers([
+            header::AUTHORIZATION,
+            header::ACCEPT,
+            header::CONTENT_TYPE,
+            header::COOKIE,
+        ])
         .allow_credentials(true);
 
     let app = build_router(state)

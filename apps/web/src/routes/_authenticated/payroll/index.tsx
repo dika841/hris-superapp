@@ -2,6 +2,7 @@ import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Calculator, FileXls } from '@phosphor-icons/react'
+import { useQueryState, parseAsString, parseAsInteger } from 'nuqs'
 import { Button } from '@hris/ui'
 import { payrollApi } from '../../../libs/api/payroll'
 import { usePayrollQueries } from './_hooks/use-payroll-queries'
@@ -13,23 +14,57 @@ import {
 import { TaxSimulatorCard } from './_components/tax-simulator-card'
 import { PayrollTable } from './_components/payroll-table'
 import { CalculatePayrollModal } from './_components/calculate-payroll-modal'
+import { useDebouncedCallback } from '../../../libs/hooks/use-debounce'
 
 export const Route = createFileRoute('/_authenticated/payroll/')({
   component: PayrollPage,
 })
 
 function PayrollPage() {
-  const [selectedMonth, setSelectedMonth] = React.useState(new Date().getMonth() + 1)
-  const [selectedYear, setSelectedYear] = React.useState(new Date().getFullYear())
+  const currentMonth = new Date().getMonth() + 1
+  const currentYear = new Date().getFullYear()
+
+  // Sync state with URL search params via nuqs
+  const [selectedMonth, setSelectedMonthState] = useQueryState(
+    'month',
+    parseAsInteger.withDefault(currentMonth)
+  )
+  const [selectedYear, setSelectedYearState] = useQueryState(
+    'year',
+    parseAsInteger.withDefault(currentYear)
+  )
+  const [selectedStatus, setSelectedStatusState] = useQueryState(
+    'status',
+    parseAsString.withDefault('all')
+  )
+  const [urlSearch, setUrlSearch] = useQueryState('search', parseAsString.withDefault(''))
+
+  // Local search state for immediate keystroke feedback
+  const [localSearch, setLocalSearch] = React.useState(urlSearch)
+
+  React.useEffect(() => {
+    setLocalSearch(urlSearch)
+  }, [urlSearch])
+
+  const debouncedSetUrlSearch = useDebouncedCallback((val: string) => {
+    const trimmed = val.trim()
+    setUrlSearch(trimmed ? trimmed : null)
+  }, 300)
+
+  const handleSearchChange = (val: string) => {
+    setLocalSearch(val)
+    debouncedSetUrlSearch(val)
+  }
+
   const [isCalcModalOpen, setIsCalcModalOpen] = React.useState(false)
 
   const {
     records,
-    isLoading: _recordsLoading,
+    isLoading: recordsLoading,
     employees,
     calculateMutation,
     payMutation,
-  } = usePayrollQueries(selectedMonth, selectedYear)
+  } = usePayrollQueries(selectedMonth, selectedYear, selectedStatus)
 
   const { form: simForm, values: simValues } = useTaxSimulatorForm()
 
@@ -81,10 +116,15 @@ function PayrollPage() {
         records={records}
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}
-        onMonthChange={setSelectedMonth}
-        onYearChange={setSelectedYear}
+        selectedStatus={selectedStatus}
+        search={localSearch}
+        onSearchChange={handleSearchChange}
+        onMonthChange={(m) => setSelectedMonthState(m === currentMonth ? null : m)}
+        onYearChange={(y) => setSelectedYearState(y === currentYear ? null : y)}
+        onStatusChange={(s) => setSelectedStatusState(s === 'all' ? null : s)}
         onMarkPaid={(id) => payMutation.mutate(id)}
         isPaying={payMutation.isPending}
+        isLoading={recordsLoading}
       />
 
       {/* Calculate Payroll Modal */}

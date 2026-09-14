@@ -12,7 +12,22 @@ export const Route = createFileRoute('/_authenticated/employees/')({
 
 function EmployeesPage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false)
-  const { employees, isLoading, createMutation } = useEmployeeQueries()
+  const {
+    employees,
+    total,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    search,
+    setSearch,
+    department,
+    setDepartment,
+    status,
+    setStatus,
+    isLoading,
+    createMutation,
+  } = useEmployeeQueries()
 
   const handleCreateEmployee = async (payload: Parameters<typeof createMutation.mutateAsync>[0]) => {
     await createMutation.mutateAsync(payload)
@@ -39,7 +54,21 @@ function EmployeesPage() {
       </div>
 
       {/* Workforce Directory Table */}
-      <EmployeeTable employees={employees} isLoading={isLoading} />
+      <EmployeeTable
+        employees={employees}
+        total={total}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        search={search}
+        onSearchChange={setSearch}
+        department={department}
+        onDepartmentChange={setDepartment}
+        status={status}
+        onStatusChange={setStatus}
+        isLoading={isLoading}
+      />
 
       {/* Add Employee Modal */}
       <EmployeeModal

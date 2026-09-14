@@ -10,6 +10,11 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
 } from '@hris/ui'
 import { formatRupiah } from '@hris/utils'
 import type { AnyFieldApi } from '@tanstack/react-form'
@@ -70,23 +75,24 @@ export function TaxSimulatorCard({ form, simResult }: TaxSimulatorCardProps) {
                   PTKP Status
                 </FormLabel>
                 <FormControl>
-                  <select
-                    id={field.name}
-                    name={field.name}
+                  <Select
                     value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value as any)}
-                    className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm text-foreground"
+                    onValueChange={(val) => field.handleChange(val as any)}
                   >
-                    <option value="TK/0">TK/0 (TER A)</option>
-                    <option value="TK/1">TK/1 (TER A)</option>
-                    <option value="TK/2">TK/2 (TER B)</option>
-                    <option value="TK/3">TK/3 (TER B)</option>
-                    <option value="K/0">K/0 (TER A)</option>
-                    <option value="K/1">K/1 (TER B)</option>
-                    <option value="K/2">K/2 (TER B)</option>
-                    <option value="K/3">K/3 (TER C)</option>
-                  </select>
+                    <SelectTrigger id={field.name} className="h-10 rounded-xl text-xs">
+                      <SelectValue placeholder="Select PTKP Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TK/0">TK/0 (TER A)</SelectItem>
+                      <SelectItem value="TK/1">TK/1 (TER A)</SelectItem>
+                      <SelectItem value="TK/2">TK/2 (TER B)</SelectItem>
+                      <SelectItem value="TK/3">TK/3 (TER B)</SelectItem>
+                      <SelectItem value="K/0">K/0 (TER A)</SelectItem>
+                      <SelectItem value="K/1">K/1 (TER B)</SelectItem>
+                      <SelectItem value="K/2">K/2 (TER B)</SelectItem>
+                      <SelectItem value="K/3">K/3 (TER C)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage errors={field.state.meta.errors} />
               </FormItem>

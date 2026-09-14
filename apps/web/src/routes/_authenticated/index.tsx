@@ -1,12 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import {
-  Users,
-  Calculator,
-  ShieldCheck,
-  ArrowUpRight,
-  Sparkle,
-  CurrencyDollar,
+  UsersIcon,
+  CalculatorIcon,
+  ShieldCheckIcon,
+  ArrowUpRightIcon,
+  CurrencyDollarIcon,
 } from "@phosphor-icons/react"
 import { Card, CardContent, CardHeader, CardTitle, Button } from "@hris/ui"
 import { formatRupiah } from "@hris/utils"
@@ -29,7 +28,7 @@ function DashboardOverviewPage() {
 
   const { data: payrollData } = useQuery({
     queryKey: payrollKeys.list({ month: currentMonth, year: currentYear }),
-    queryFn: () => payrollApi.list(currentMonth, currentYear),
+    queryFn: () => payrollApi.list({ month: currentMonth, year: currentYear }),
   })
 
   const totalEmployees = employeesData?.total || 0
@@ -43,10 +42,9 @@ function DashboardOverviewPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/10 via-card/80 to-card/50 p-8 backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-r from-primary/10 via-card/80 to-card/50 p-8 backdrop-blur-xl">
         <div className="relative z-10 max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
-            <Sparkle className="h-3.5 w-3.5" />
             Next-Gen Deterministic Payroll Active
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -56,7 +54,7 @@ function DashboardOverviewPage() {
             Real-time tracking of employee master records, deterministic PPh 21 TER (PMK 168/2023) calculations, and BPJS compliance.
           </p>
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/15 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-primary/15 via-transparent to-transparent pointer-events-none" />
       </div>
 
       {/* KPI Stats Grid */}
@@ -65,7 +63,7 @@ function DashboardOverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Total Workforce</CardTitle>
             <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Users className="h-4 w-4" />
+              <UsersIcon className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
@@ -81,7 +79,7 @@ function DashboardOverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Current Month Payroll</CardTitle>
             <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <CurrencyDollar className="h-4 w-4" />
+              <CurrencyDollarIcon className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
@@ -94,7 +92,7 @@ function DashboardOverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">PPh 21 TER Withholding</CardTitle>
             <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Calculator className="h-4 w-4" />
+              <CalculatorIcon className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
@@ -107,7 +105,7 @@ function DashboardOverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">System Governance</CardTitle>
             <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-              <ShieldCheck className="h-4 w-4" />
+              <ShieldCheckIcon className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent>
@@ -122,7 +120,7 @@ function DashboardOverviewPage() {
         <Card className="glass-panel p-6 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Users className="h-5 w-5" />
+              <UsersIcon className="h-5 w-5" />
             </div>
             <h3 className="text-base font-semibold text-foreground">Manage Workforce</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -132,7 +130,7 @@ function DashboardOverviewPage() {
           <Link to="/employees" className="mt-6">
             <Button variant="secondary" className="w-full justify-between">
               <span>View Directory</span>
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowUpRightIcon className="h-4 w-4" />
             </Button>
           </Link>
         </Card>
@@ -140,7 +138,7 @@ function DashboardOverviewPage() {
         <Card className="glass-panel p-6 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Calculator className="h-5 w-5" />
+              <CalculatorIcon className="h-5 w-5" />
             </div>
             <h3 className="text-base font-semibold text-foreground">Payroll & Tax Simulator</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -150,7 +148,7 @@ function DashboardOverviewPage() {
           <Link to="/payroll" className="mt-6">
             <Button variant="secondary" className="w-full justify-between">
               <span>Open Payroll Studio</span>
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowUpRightIcon className="h-4 w-4" />
             </Button>
           </Link>
         </Card>
@@ -158,7 +156,7 @@ function DashboardOverviewPage() {
         <Card className="glass-panel p-6 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <ShieldCheck className="h-5 w-5" />
+              <ShieldCheckIcon className="h-5 w-5" />
             </div>
             <h3 className="text-base font-semibold text-foreground">Access & RBAC Matrix</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -168,7 +166,7 @@ function DashboardOverviewPage() {
           <Link to="/users" className="mt-6">
             <Button variant="secondary" className="w-full justify-between">
               <span>Security Controls</span>
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowUpRightIcon className="h-4 w-4" />
             </Button>
           </Link>
         </Card>

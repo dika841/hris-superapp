@@ -50,16 +50,22 @@ export interface TTaxPreviewResponse {
   estimated_take_home_pay: string
 }
 
+export interface ListPayrollParams {
+  month: number
+  year: number
+  is_paid?: boolean
+}
+
 // Query Key Factory (Rule 1 & Section 3.8)
 export const payrollKeys = {
   all: ['payroll'] as const,
   lists: () => [...payrollKeys.all, 'list'] as const,
-  list: (params?: { month?: number; year?: number }) => [...payrollKeys.lists(), params] as const,
+  list: (params?: ListPayrollParams) => [...payrollKeys.lists(), params] as const,
 }
 
 export const payrollApi = {
-  list: async (month: number, year: number): Promise<IPayrollRecord[]> => {
-    const res = await api.get<IPayrollRecord[]>('/payroll', { params: { month, year } })
+  list: async (params: ListPayrollParams): Promise<IPayrollRecord[]> => {
+    const res = await api.get<IPayrollRecord[]>('/payroll', { params })
     return res.data
   },
   calculate: async (payload: TCalculatePayrollPayload): Promise<IPayrollRecord> => {

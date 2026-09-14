@@ -6,6 +6,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  Combobox,
 } from '@hris/ui'
 import type { AnyFieldApi } from '@tanstack/react-form'
 import type { useCalculatePayrollForm } from '../_hooks/use-payroll-forms'
@@ -36,6 +37,11 @@ export function CalculatePayrollModal({
 }: CalculatePayrollModalProps) {
   if (!isOpen) return null
 
+  const employeeOptions = employees.map((emp) => ({
+    value: emp.id,
+    label: `${emp.full_name} (${emp.employee_code}) - ${emp.department}`,
+  }))
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-6">
@@ -49,7 +55,7 @@ export function CalculatePayrollModal({
               onClose()
               form.reset()
             }}
-            className="text-muted-foreground hover:text-foreground text-sm"
+            className="text-muted-foreground hover:text-foreground text-sm cursor-pointer"
           >
             ✕
           </button>
@@ -71,21 +77,13 @@ export function CalculatePayrollModal({
                   Select Employee
                 </FormLabel>
                 <FormControl>
-                  <select
-                    id={field.name}
-                    name={field.name}
+                  <Combobox
+                    options={employeeOptions}
                     value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm text-foreground"
-                  >
-                    <option value="">-- Choose Employee --</option>
-                    {employees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.full_name} ({emp.employee_code}) - {emp.department}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => field.handleChange(val)}
+                    placeholder="-- Choose Employee --"
+                    searchPlaceholder="Search employee name or code..."
+                  />
                 </FormControl>
                 <FormMessage errors={field.state.meta.errors} />
               </FormItem>

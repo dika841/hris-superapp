@@ -10,7 +10,7 @@ impl<R: PayrollRepository> ListPayrollUseCase<R> {
         Self { payroll_repository }
     }
 
-    pub async fn execute(&self, month: i32, year: i32) -> Result<Vec<PayrollRecord>, RepositoryError> {
-        self.payroll_repository.list_by_period(month, year).await
+    pub async fn execute(&self, month: i32, year: i32, is_paid: Option<bool>) -> Result<Vec<PayrollRecord>, RepositoryError> {
+        self.payroll_repository.list_by_period(month, year, is_paid).await
     }
 }
