@@ -50,6 +50,25 @@ export interface TTaxPreviewResponse {
   estimated_take_home_pay: string
 }
 
+export interface TBatchCalculatePayload {
+  period_month: number
+  period_year: number
+  skip_existing?: boolean
+}
+
+export interface TBatchPayrollSummary {
+  period_month: number
+  period_year: number
+  total_active_employees: number
+  processed_count: number
+  skipped_count: number
+  total_gross_salary: string
+  total_pph21_amount: string
+  total_bpjs_amount: string
+  total_take_home_pay: string
+  records: IPayrollRecord[]
+}
+
 export interface ListPayrollParams {
   month: number
   year: number
@@ -66,6 +85,10 @@ export const payrollKeys = {
 export const payrollApi = {
   list: async (params: ListPayrollParams): Promise<IPayrollRecord[]> => {
     const res = await api.get<IPayrollRecord[]>('/payroll', { params })
+    return res.data
+  },
+  calculateBatch: async (payload: TBatchCalculatePayload): Promise<TBatchPayrollSummary> => {
+    const res = await api.post<TBatchPayrollSummary>('/payroll/calculate-batch', payload)
     return res.data
   },
   calculate: async (payload: TCalculatePayrollPayload): Promise<IPayrollRecord> => {

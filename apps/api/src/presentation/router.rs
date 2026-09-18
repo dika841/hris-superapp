@@ -30,6 +30,7 @@ pub fn build_router(state: AppState) -> Router {
         // Payroll
         .route("/api/payroll", get(payroll::list_payroll))
         .route("/api/payroll/calculate", post(payroll::calculate_payroll))
+        .route("/api/payroll/calculate-batch", post(payroll::calculate_batch_payroll))
         .route("/api/payroll/{id}/pay", patch(payroll::mark_payroll_paid))
         // Apply auth middleware
         .route_layer(middleware::from_fn_with_state(state.clone(), auth_middleware));

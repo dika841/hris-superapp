@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { Calculator, FileXls } from '@phosphor-icons/react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Calculator, FileXls, UsersThree } from '@phosphor-icons/react'
 import { useQueryState, parseAsString, parseAsInteger } from 'nuqs'
 import { Button } from '@hris/ui'
-import { payrollApi } from '../../../libs/api/payroll'
+import { payrollApi, payrollKeys, type IPayrollRecord } from '../../../libs/api/payroll'
 import { usePayrollQueries } from './_hooks/use-payroll-queries'
 import {
   useTaxSimulatorForm,
@@ -14,6 +14,8 @@ import {
 import { TaxSimulatorCard } from './_components/tax-simulator-card'
 import { PayrollTable } from './_components/payroll-table'
 import { CalculatePayrollModal } from './_components/calculate-payroll-modal'
+import { BatchCalculateModal } from './_components/batch-calculate-modal'
+import { PayslipModal } from './_components/payslip-modal'
 import { useDebouncedCallback } from '../../../libs/hooks/use-debounce'
 
 export const Route = createFileRoute('/_authenticated/payroll/')({
@@ -21,6 +23,7 @@ export const Route = createFileRoute('/_authenticated/payroll/')({
 })
 
 function PayrollPage() {
+  const queryClient = useQueryClient()
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
@@ -57,6 +60,8 @@ function PayrollPage() {
   }
 
   const [isCalcModalOpen, setIsCalcModalOpen] = React.useState(false)
+  const [isBatchModalOpen, setIsBatchModalOpen] = React.useState(false)
+  const [activePayslipRecord, setActivePayslipRecord] = React.useState<IPayrollRecord | null>(null)
 
   const {
     records,
@@ -89,6 +94,15 @@ function PayrollPage() {
     setIsCalcModalOpen(false)
   })
 
+  const activePayslipEmployee = React.useMemo(() => {
+    if (!activePayslipRecord) return undefined
+    return employees.find((e) => e.id === activePayslipRecord.employee_id)
+  }, [activePayslipRecord, employees])
+
+  const activeEmployeesCount = React.useMemo(() => {
+    return employees.filter((e) => e.is_active).length
+  }, [employees])
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -102,10 +116,20 @@ function PayrollPage() {
             Compliant with Minister of Finance Regulation PMK 168/2023 and PP 35/2021 overtime standards.
           </p>
         </div>
-        <Button onClick={() => setIsCalcModalOpen(true)} className="gap-2">
-          <FileXls className="h-4 w-4" />
-          Process Employee Payroll
-        </Button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={() => setIsBatchModalOpen(true)}
+            className="gap-2 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50"
+          >
+            <UsersThree className="h-4 w-4" />
+            Run Batch Payroll
+          </Button>
+          <Button onClick={() => setIsCalcModalOpen(true)} className="gap-2">
+            <FileXls className="h-4 w-4" />
+            Process Employee Payroll
+          </Button>
+        </div>
       </div>
 
       {/* Interactive PMK 168/2023 Tax Simulator Card */}
@@ -123,11 +147,12 @@ function PayrollPage() {
         onYearChange={(y) => setSelectedYearState(y === currentYear ? null : y)}
         onStatusChange={(s) => setSelectedStatusState(s === 'all' ? null : s)}
         onMarkPaid={(id) => payMutation.mutate(id)}
+        onViewPayslip={(record) => setActivePayslipRecord(record)}
         isPaying={payMutation.isPending}
         isLoading={recordsLoading}
       />
 
-      {/* Calculate Payroll Modal */}
+      {/* Calculate Individual Payroll Modal */}
       <CalculatePayrollModal
         isOpen={isCalcModalOpen}
         onClose={() => setIsCalcModalOpen(false)}
@@ -136,6 +161,26 @@ function PayrollPage() {
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}
         isPending={calculateMutation.isPending}
+      />
+
+      {/* Batch Calculate Payroll Modal */}
+      <BatchCalculateModal
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: payrollKeys.all })
+        }}
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        activeEmployeeCount={activeEmployeesCount}
+      />
+
+      {/* e-Payslip View & Print Modal */}
+      <PayslipModal
+        isOpen={!!activePayslipRecord}
+        onClose={() => setActivePayslipRecord(null)}
+        record={activePayslipRecord}
+        employee={activePayslipEmployee}
       />
     </div>
   )

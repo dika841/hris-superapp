@@ -1,5 +1,11 @@
 import { Calculator } from '@phosphor-icons/react'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
   Button,
   Input,
   FormItem,
@@ -35,31 +41,28 @@ export function CalculatePayrollModal({
   selectedYear,
   isPending,
 }: CalculatePayrollModalProps) {
-  if (!isOpen) return null
-
   const employeeOptions = employees.map((emp) => ({
     value: emp.id,
     label: `${emp.full_name} (${emp.employee_code}) - ${emp.department}`,
   }))
 
+  const handleClose = () => {
+    onClose()
+    form.reset()
+  }
+
   return (
-    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-lg space-y-5">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
             <Calculator className="h-5 w-5 text-primary" />
-            Compute Employee Payroll
-          </h2>
-          <button
-            onClick={() => {
-              onClose()
-              form.reset()
-            }}
-            className="text-muted-foreground hover:text-foreground text-sm cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
+            <DialogTitle>Compute Employee Payroll</DialogTitle>
+          </div>
+          <DialogDescription>
+            Calculate payroll for an individual employee according to PMK 168/2023.
+          </DialogDescription>
+        </DialogHeader>
 
         <form
           onSubmit={(e) => {
@@ -153,14 +156,11 @@ export function CalculatePayrollModal({
             />
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-border">
+          <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-border">
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                onClose()
-                form.reset()
-              }}
+              onClick={handleClose}
             >
               Cancel
             </Button>
@@ -177,9 +177,9 @@ export function CalculatePayrollModal({
                 </Button>
               )}
             />
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
