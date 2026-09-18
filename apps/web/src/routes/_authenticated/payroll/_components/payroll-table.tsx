@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { ReceiptIcon } from '@phosphor-icons/react'
 import {
   Card,
   CardContent,
@@ -17,7 +18,7 @@ import {
   type ColumnDef,
 } from '@hris/ui'
 import { formatRupiah } from '@hris/utils'
-import type { IPayrollRecord } from '../../../../libs/api/payroll'
+import type { IPayrollRecord } from '#/libs/api/payroll'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -41,6 +42,7 @@ interface PayrollTableProps {
   onYearChange: (year: number) => void
   onStatusChange: (status: string) => void
   onMarkPaid: (id: string) => void
+  onViewPayslip?: (record: IPayrollRecord) => void
   isPaying: boolean
   isLoading?: boolean
 }
@@ -56,6 +58,7 @@ export function PayrollTable({
   onYearChange,
   onStatusChange,
   onMarkPaid,
+  onViewPayslip,
   isPaying,
   isLoading = false,
 }: PayrollTableProps) {
@@ -137,13 +140,23 @@ export function PayrollTable({
         id: 'actions',
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => (
-          <div className="text-right">
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onViewPayslip?.(row.original)}
+              className="h-8 px-2.5 text-xs gap-1.5"
+            >
+              <ReceiptIcon className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>e-Payslip</span>
+            </Button>
             {!row.original.is_paid && (
               <Button
                 size="sm"
                 variant="secondary"
                 onClick={() => onMarkPaid(row.original.id)}
                 disabled={isPaying}
+                className="h-8 text-xs"
               >
                 Mark Paid
               </Button>
@@ -152,7 +165,7 @@ export function PayrollTable({
         ),
       },
     ],
-    [isPaying, onMarkPaid]
+    [isPaying, onMarkPaid, onViewPayslip]
   )
 
   const filterControls = (

@@ -1,3 +1,5 @@
+export const formatIDR = (amount: number | string): string => formatRupiah(amount)
+
 export function formatRupiah(amount: number | string): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
   if (isNaN(num)) return 'Rp 0'

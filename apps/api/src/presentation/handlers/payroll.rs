@@ -7,6 +7,7 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::application::payroll::use_cases::{
+    BatchCalculatePayrollCommand, BatchCalculatePayrollUseCase, BatchPayrollSummary,
     CalculatePayrollCommand, CalculatePayrollUseCase, ListPayrollUseCase, MarkPayrollPaidUseCase,
 };
 use crate::domain::auth::entity::AuthenticatedUser;
@@ -68,7 +69,37 @@ pub async fn list_payroll(
     Ok((StatusCode::OK, Json(records)))
 }
 
-#[tracing::instrument(skip_all, fields(actor_id = %actor.id, employee_id = %req.employee_id))]
+#[derive(Debug, Deserialize)]
+pub struct BatchCalculatePayrollRequest {
+    pub period_month: i32,
+    pub period_year: i32,
+    pub skip_existing: Option<bool>,
+}
+
+#[tracing::instrument(skip_all, fields(actor_id = %actor.id, month = %req.period_month, year = %req.period_year))]
+pub async fn calculate_batch_payroll(
+    State(state): State<AppState>,
+    Extension(actor): Extension<AuthenticatedUser>,
+    Json(req): Json<BatchCalculatePayrollRequest>,
+) -> Result<(StatusCode, Json<BatchPayrollSummary>), AppError> {
+    ensure_permission(&actor, "payroll:calculate")?;
+
+    let use_case = BatchCalculatePayrollUseCase::new(
+        state.employee_repository.clone(),
+        state.payroll_repository.clone(),
+    );
+
+    let summary = use_case
+        .execute(BatchCalculatePayrollCommand {
+            period_month: req.period_month,
+            period_year: req.period_year,
+            skip_existing: req.skip_existing.unwrap_or(true),
+        })
+        .await?;
+
+    Ok((StatusCode::OK, Json(summary)))
+}
+
 pub async fn calculate_payroll(
     State(state): State<AppState>,
     Extension(actor): Extension<AuthenticatedUser>,
