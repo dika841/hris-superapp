@@ -1,10 +1,13 @@
 use chrono::{Datelike, Utc};
 use chrono_tz::Asia::Jakarta;
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
+use crate::domain::attendance::repository::AttendanceRepository;
 use crate::domain::employee::repository::EmployeeRepository;
 use crate::domain::errors::RepositoryError;
 use crate::domain::payroll::repository::PayrollRepository;
-use crate::infrastructure::repository::{SeaOrmEmployeeRepository, SeaOrmPayrollRepository};
+use crate::infrastructure::repository::{
+    SeaOrmAttendanceRepository, SeaOrmEmployeeRepository, SeaOrmPayrollRepository,
+};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct HeartbeatResult {
@@ -36,6 +39,7 @@ pub struct CutoffCheckResult {
 #[derive(Clone)]
 pub struct SchedulerTasks {
     db: DatabaseConnection,
+    attendance_repository: SeaOrmAttendanceRepository,
     employee_repository: SeaOrmEmployeeRepository,
     payroll_repository: SeaOrmPayrollRepository,
 }
@@ -43,11 +47,13 @@ pub struct SchedulerTasks {
 impl SchedulerTasks {
     pub fn new(
         db: DatabaseConnection,
+        attendance_repository: SeaOrmAttendanceRepository,
         employee_repository: SeaOrmEmployeeRepository,
         payroll_repository: SeaOrmPayrollRepository,
     ) -> Self {
         Self {
             db,
+            attendance_repository,
             employee_repository,
             payroll_repository,
         }
@@ -89,14 +95,24 @@ impl SchedulerTasks {
     /// Checks unclosed shifts for the given date and safely flags them.
     pub async fn execute_nightly_attendance(&self) -> Result<AttendanceSweepResult, RepositoryError> {
         let now_wib = Utc::now().with_timezone(&Jakarta);
-        let target_date = now_wib.format("%Y-%m-%d").to_string();
+        let today = now_wib.date_naive();
+        let target_date = today.format("%Y-%m-%d").to_string();
 
-        let _table_check = self.db.execute(Statement::from_string(
-            DbBackend::Postgres,
-            "SELECT to_regclass('public.attendance_logs');",
-        )).await;
+        let unclosed = self.attendance_repository.find_unclosed_shifts(today).await?;
+        let mut auto_closed_count = 0;
 
-        let auto_closed_count = 0;
+        for mut log in unclosed {
+            log.check_out = Some(Utc::now());
+            log.auto_closed = true;
+            log.notes = match log.notes {
+                Some(prev) => Some(format!("{} | Auto-closed by nightly sweep", prev)),
+                None => Some("Auto-closed by nightly sweep".to_string()),
+            };
+            if self.attendance_repository.update_log(log).await.is_ok() {
+                auto_closed_count += 1;
+            }
+        }
+
         let message = format!(
             "Nightly attendance sweep for {} completed. {} shifts auto-closed (Idempotent).",
             target_date, auto_closed_count
@@ -160,7 +176,6 @@ impl SchedulerTasks {
         })
     }
 }
-
 
 #[cfg(test)]
 mod tests {
