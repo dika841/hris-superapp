@@ -1,35 +1,35 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
+import { attendanceKeys, type ListAttendanceParams } from '#/libs/api/attendance'
+import {
+  useAttendanceLogs,
+  useAttendanceStats,
+} from './use-attendance-queries'
+import {
+  useTodayAttendance,
+  useClockActions,
+} from './use-clock-action'
 
-export interface AttendanceRecord {
-  name: string
-  code: string
-  date: string
-  checkIn: string
-  checkOut: string
-  status: 'On Time' | 'Late' | 'Annual Leave' | 'Sick Leave'
-}
+export type { AttendanceRecordUI } from './attendance.types'
+export { mapStatusToUI, formatTimeString } from './attendance.types'
+export { useAttendanceLogs, useAttendanceStats } from './use-attendance-queries'
+export { useTodayAttendance, useClockActions } from './use-clock-action'
 
-const mockAttendance: AttendanceRecord[] = [
-  { name: 'Budi Santoso', code: 'EMP-1001', date: '2026-09-12', checkIn: '08:55', checkOut: '17:45', status: 'On Time' },
-  { name: 'Siti Rahma', code: 'EMP-1002', date: '2026-09-12', checkIn: '09:12', checkOut: '18:10', status: 'Late' },
-  { name: 'Dewi Lestari', code: 'EMP-1003', date: '2026-09-12', checkIn: '08:45', checkOut: '17:30', status: 'On Time' },
-  { name: 'Ahmad Fauzi', code: 'EMP-1004', date: '2026-09-12', checkIn: '-', checkOut: '-', status: 'Annual Leave' },
-]
-
-export function useAttendanceData() {
-  const query = useQuery({
-    queryKey: ['attendance', 'daily-logs'],
-    queryFn: async () => mockAttendance,
-    initialData: mockAttendance,
-  })
+export function useAttendanceData(params?: ListAttendanceParams) {
+  const queryClient = useQueryClient()
+  const { records, isLoading: isLogsLoading } = useAttendanceLogs(params)
+  const { stats, isLoading: isStatsLoading } = useAttendanceStats(params?.date)
+  const { today, isLoading: isTodayLoading } = useTodayAttendance(params?.employee_id)
+  const clockActions = useClockActions()
 
   return {
-    records: query.data,
-    isLoading: query.isLoading,
-    stats: {
-      presentRate: '96.4%',
-      overtimeHours: '124.5 Hrs',
-      pendingLeaveRequests: 2,
+    records,
+    stats,
+    isLoading: isLogsLoading || isStatsLoading,
+    today,
+    isTodayLoading,
+    ...clockActions,
+    refetchAll: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all })
     },
   }
 }

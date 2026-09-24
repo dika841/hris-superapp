@@ -78,6 +78,15 @@ impl EmployeeRepository for SeaOrmEmployeeRepository {
             .map_err(map_db_err)
     }
 
+    async fn find_by_user_id(&self, user_id: Uuid) -> Result<Option<Employee>, RepositoryError> {
+        employee_entity::Entity::find()
+            .filter(employee_entity::Column::UserId.eq(user_id))
+            .one(&self.db)
+            .await
+            .map(|opt| opt.map(Employee::from))
+            .map_err(map_db_err)
+    }
+
     async fn create(&self, employee: NewEmployee) -> Result<Employee, RepositoryError> {
         let now = Utc::now();
         let model = employee_entity::ActiveModel {

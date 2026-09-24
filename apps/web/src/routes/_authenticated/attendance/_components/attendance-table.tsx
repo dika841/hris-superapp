@@ -10,15 +10,15 @@ import {
   DataTableColumnHeader,
   type ColumnDef,
 } from '@hris/ui'
-import type { AttendanceRecord } from '../_hooks/use-attendance-data'
+import type { AttendanceRecordUI } from '../_hooks/use-attendance-data'
 
 interface AttendanceTableProps {
-  records: AttendanceRecord[]
+  records: AttendanceRecordUI[]
   isLoading?: boolean
 }
 
 export function AttendanceTable({ records, isLoading = false }: AttendanceTableProps) {
-  const columns = React.useMemo<ColumnDef<AttendanceRecord>[]>(
+  const columns = React.useMemo<ColumnDef<AttendanceRecordUI>[]>(
     () => [
       {
         accessorKey: 'name',
@@ -26,7 +26,11 @@ export function AttendanceTable({ records, isLoading = false }: AttendanceTableP
         cell: ({ row }) => (
           <div>
             <div className="font-medium text-foreground">{row.original.name}</div>
-            <div className="text-xs font-mono text-muted-foreground">{row.original.code}</div>
+            <div className="text-xs font-mono text-muted-foreground flex items-center gap-1.5">
+              <span>{row.original.code}</span>
+              <span>•</span>
+              <span className="text-primary/80">{row.original.department}</span>
+            </div>
           </div>
         ),
       },
@@ -41,32 +45,45 @@ export function AttendanceTable({ records, isLoading = false }: AttendanceTableP
         accessorKey: 'checkIn',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Check In" />,
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-emerald-500 font-semibold">{row.original.checkIn}</span>
+          <div>
+            <span className="font-mono text-xs text-emerald-500 font-semibold">{row.original.checkIn}</span>
+            {row.original.lateMinutes > 0 && (
+              <span className="block text-[10px] text-amber-500 font-mono">+{row.original.lateMinutes}m late</span>
+            )}
+          </div>
         ),
       },
       {
         accessorKey: 'checkOut',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Check Out" />,
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">{row.original.checkOut}</span>
+          <div>
+            <span className="font-mono text-xs text-muted-foreground">{row.original.checkOut}</span>
+            {row.original.overtimeMinutes > 0 && (
+              <span className="block text-[10px] text-emerald-500 font-mono">+{row.original.overtimeMinutes}m OT</span>
+            )}
+            {row.original.autoClosed && (
+              <span className="block text-[10px] text-amber-500/80 font-mono">Auto-closed</span>
+            )}
+          </div>
         ),
       },
       {
         accessorKey: 'status',
         header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-        cell: ({ row }) => (
-          <Badge
-            variant={
-              row.original.status === 'On Time'
-                ? 'success'
-                : row.original.status === 'Late'
-                ? 'warning'
-                : 'info'
-            }
-          >
-            {row.original.status}
-          </Badge>
-        ),
+        cell: ({ row }) => {
+          const status = row.original.status
+          const variant =
+            status === 'On Time'
+              ? 'success'
+              : status === 'Late'
+              ? 'warning'
+              : status === 'Early Departure'
+              ? 'secondary'
+              : 'danger'
+
+          return <Badge variant={variant as any}>{status}</Badge>
+        },
       },
     ],
     []
@@ -83,7 +100,7 @@ export function AttendanceTable({ records, isLoading = false }: AttendanceTableP
           columns={columns}
           data={records}
           isLoading={isLoading}
-          searchPlaceholder="Search employee or code..."
+          searchPlaceholder="Search employee, department or code..."
           pageSize={10}
           pageSizeOptions={[10, 20, 50]}
           emptyMessage="No attendance logs recorded for this period."

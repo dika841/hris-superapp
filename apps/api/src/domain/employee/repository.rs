@@ -8,6 +8,8 @@ pub trait EmployeeRepository: Send + Sync {
         -> impl Future<Output = Result<Option<Employee>, RepositoryError>> + Send;
     fn find_by_code(&self, code: &str)
         -> impl Future<Output = Result<Option<Employee>, RepositoryError>> + Send;
+    fn find_by_user_id(&self, user_id: Uuid)
+        -> impl Future<Output = Result<Option<Employee>, RepositoryError>> + Send;
     fn create(&self, employee: NewEmployee)
         -> impl Future<Output = Result<Employee, RepositoryError>> + Send;
     fn update(&self, id: Uuid, patch: EmployeePatch)

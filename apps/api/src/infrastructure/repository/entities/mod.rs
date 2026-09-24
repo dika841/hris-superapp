@@ -1,7 +1,12 @@
+pub mod attendance;
 pub mod employee;
+pub mod leave_balance;
+pub mod leave_request;
+pub mod leave_type;
 pub mod payroll;
 pub mod permission;
 pub mod role;
 pub mod role_permission;
 pub mod user;
 pub mod user_role;
+pub mod work_schedule;

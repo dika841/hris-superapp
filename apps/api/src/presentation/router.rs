@@ -4,7 +4,7 @@ use axum::{
     Json, Router,
 };
 use serde_json::json;
-use crate::presentation::handlers::{auth, employee, payroll, user};
+use crate::presentation::handlers::{attendance, auth, employee, leave, payroll, user};
 use crate::presentation::middleware::auth_middleware;
 use crate::presentation::state::AppState;
 
@@ -32,6 +32,19 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/payroll/calculate", post(payroll::calculate_payroll))
         .route("/api/payroll/calculate-batch", post(payroll::calculate_batch_payroll))
         .route("/api/payroll/{id}/pay", patch(payroll::mark_payroll_paid))
+        // Attendance
+        .route("/api/attendance/today", get(attendance::get_today))
+        .route("/api/attendance/clock-in", post(attendance::clock_in))
+        .route("/api/attendance/clock-out", post(attendance::clock_out))
+        .route("/api/attendance/logs", get(attendance::list_logs))
+        .route("/api/attendance/stats", get(attendance::get_stats))
+        .route("/api/attendance/nightly-sweep", post(attendance::trigger_nightly_sweep))
+        // Leave
+        .route("/api/leave/types", get(leave::list_types))
+        .route("/api/leave/balances", get(leave::list_balances))
+        .route("/api/leave/requests", get(leave::list_requests).post(leave::submit_request))
+        .route("/api/leave/requests/{id}/review", patch(leave::review_request))
+        .route("/api/leave/stats", get(leave::get_stats))
         // Apply auth middleware
         .route_layer(middleware::from_fn_with_state(state.clone(), auth_middleware));
 
